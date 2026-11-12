@@ -1,0 +1,166 @@
+table r_e1_model_comparison
+	lineageTag: 18ca4f95-7d4d-4249-bbbb-082b1713e7d3
+
+	measure 'Rules Baseline AUPRC' = CALCULATE(MAX('r_e1_model_comparison'[test_auprc]), 'r_e1_model_comparison'[model] = "Rules")
+		formatString: 0.000
+		lineageTag: 3f46eb3a-1fb8-4efc-95a2-4e4b2fbf2ae7
+
+	measure 'Model Color' = IF(SELECTEDVALUE('r_e1_model_comparison'[model]) = "Rules", "#c3c2b7", "#2a78d6")
+		lineageTag: f2b380c3-4c7a-45c8-a25b-6c928c1a41c6
+
+	column model
+		dataType: string
+		lineageTag: b0e59ba2-d189-420f-869e-026d18aad218
+		summarizeBy: none
+		sourceColumn: model
+
+		annotation SummarizationSetBy = Automatic
+
+	column train_time_s
+		dataType: double
+		lineageTag: e3f5bf39-77cb-4725-8f2b-f5dab9cfc63f
+		summarizeBy: sum
+		sourceColumn: train_time_s
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_trees
+		dataType: double
+		lineageTag: dfc0deac-8410-4acd-bd07-5be7946424b7
+		summarizeBy: sum
+		sourceColumn: n_trees
+
+		annotation SummarizationSetBy = Automatic
+
+	column model_size_kb
+		dataType: double
+		lineageTag: 3d54701c-7d10-4a65-8a9e-9b3476653bb2
+		summarizeBy: sum
+		sourceColumn: model_size_kb
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_auprc_ci_low
+		dataType: double
+		lineageTag: cb4804ab-88f1-4e29-b55e-156b4e49824d
+		summarizeBy: sum
+		sourceColumn: test_auprc_ci_low
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_auprc_ci_high
+		dataType: double
+		lineageTag: d25cca85-b9d2-43e1-984a-dc9528e37f00
+		summarizeBy: sum
+		sourceColumn: test_auprc_ci_high
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: 44f88a4d-9ff8-4d7e-beec-fb9e1cf0e909
+		summarizeBy: sum
+		sourceColumn: valid_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_roc_auc
+		dataType: double
+		lineageTag: bdd02f8f-a949-4dab-98fa-453ec606f020
+		summarizeBy: sum
+		sourceColumn: valid_roc_auc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'valid_recall@0.5%fpr'
+		dataType: double
+		lineageTag: 425448e8-faf2-4a6a-a585-e10873c1367a
+		summarizeBy: sum
+		sourceColumn: valid_recall@0.5%fpr
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'valid_precision@50/day'
+		dataType: double
+		lineageTag: ea75498e-7db4-4ada-9058-37eddc679b3f
+		summarizeBy: sum
+		sourceColumn: valid_precision@50/day
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'valid_recall@50/day'
+		dataType: double
+		lineageTag: d607bfe3-bbfb-4054-ba37-07f27287ef42
+		summarizeBy: sum
+		sourceColumn: valid_recall@50/day
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_brier
+		dataType: double
+		lineageTag: 353912f4-31e9-4c31-ad77-e3fc12740603
+		summarizeBy: sum
+		sourceColumn: valid_brier
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: 61503203-f72d-4722-80ec-9fba72df98c8
+		summarizeBy: sum
+		sourceColumn: test_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_roc_auc
+		dataType: double
+		lineageTag: 06e4a066-2aab-43da-b453-af02fd14be69
+		summarizeBy: sum
+		sourceColumn: test_roc_auc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'test_recall@0.5%fpr'
+		dataType: double
+		lineageTag: 5695bbdf-0a16-4d6e-8b23-57f7517a1772
+		summarizeBy: sum
+		sourceColumn: test_recall@0.5%fpr
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'test_precision@50/day'
+		dataType: double
+		lineageTag: ecd5c820-0c86-4514-8a8c-9a0d452cd95b
+		summarizeBy: sum
+		sourceColumn: test_precision@50/day
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'test_recall@50/day'
+		dataType: double
+		lineageTag: 7ec5f118-25d1-4269-b563-a3c562b2cb6c
+		summarizeBy: sum
+		sourceColumn: test_recall@50/day
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_brier
+		dataType: double
+		lineageTag: 64b0b596-921d-4130-8ac2-2c45cdfb05ce
+		summarizeBy: sum
+		sourceColumn: test_brier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition r_e1_model_comparison = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="r_e1_model_comparison"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

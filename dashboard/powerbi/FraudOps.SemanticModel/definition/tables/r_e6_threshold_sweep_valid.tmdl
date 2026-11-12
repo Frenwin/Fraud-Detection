@@ -1,0 +1,111 @@
+table r_e6_threshold_sweep_valid
+	lineageTag: 9a67c206-df3f-436a-a0a9-f05352cfeb03
+
+	column threshold
+		dataType: double
+		lineageTag: 4ce45f57-959e-485c-8386-a34158367b9d
+		summarizeBy: sum
+		sourceColumn: threshold
+
+		annotation SummarizationSetBy = Automatic
+
+	column alerts
+		dataType: int64
+		lineageTag: 57fc63e3-4484-4c2a-a87e-e6f0b8040397
+		summarizeBy: sum
+		sourceColumn: alerts
+
+		annotation SummarizationSetBy = Automatic
+
+	column tp
+		dataType: int64
+		lineageTag: 54ba2f9d-34bc-4959-a76f-8613be71a15e
+		summarizeBy: sum
+		sourceColumn: tp
+
+		annotation SummarizationSetBy = Automatic
+
+	column fp
+		dataType: int64
+		lineageTag: 9a65ca22-a52e-402d-9ea3-b4590bfbd543
+		summarizeBy: sum
+		sourceColumn: fp
+
+		annotation SummarizationSetBy = Automatic
+
+	column precision
+		dataType: double
+		lineageTag: 2741c9c5-cad1-4de3-bd06-0b6eeed7a019
+		summarizeBy: sum
+		sourceColumn: precision
+
+		annotation SummarizationSetBy = Automatic
+
+	column recall
+		dataType: double
+		formatString: 0%
+		lineageTag: 096b4585-1d70-4b2b-8e2a-d267c1feff65
+		summarizeBy: sum
+		sourceColumn: recall
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_amount_total
+		dataType: double
+		lineageTag: c42bd1f5-a7b9-4dc0-b308-07850bdab9cc
+		summarizeBy: sum
+		sourceColumn: fraud_amount_total
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_amount_prevented
+		dataType: double
+		lineageTag: 04e61bec-e5cc-4cad-96b0-48b72e2ebcba
+		summarizeBy: sum
+		sourceColumn: fraud_amount_prevented
+
+		annotation SummarizationSetBy = Automatic
+
+	column loss_prevented_pct
+		dataType: double
+		lineageTag: 9f4ad0bc-c9ec-4f17-bb00-a8db5eb053a5
+		summarizeBy: sum
+		sourceColumn: loss_prevented_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column ops_cost
+		dataType: double
+		lineageTag: cea5f052-cd97-4c31-a33c-f84655cdd84e
+		summarizeBy: sum
+		sourceColumn: ops_cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column net_savings
+		dataType: double
+		formatString: #,0
+		lineageTag: f50bbfb2-b654-46ae-850a-8fd6c1965657
+		summarizeBy: sum
+		sourceColumn: net_savings
+
+		annotation SummarizationSetBy = Automatic
+
+	column split
+		dataType: string
+		lineageTag: 32a8a473-7975-4b67-b4a1-6b1855e74823
+		summarizeBy: none
+		sourceColumn: split
+
+		annotation SummarizationSetBy = Automatic
+
+	partition r_e6_threshold_sweep_valid = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="r_e6_threshold_sweep_valid"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

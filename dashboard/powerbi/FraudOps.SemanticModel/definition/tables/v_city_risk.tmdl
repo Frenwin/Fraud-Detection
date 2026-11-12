@@ -1,0 +1,79 @@
+table v_city_risk
+	lineageTag: dec37003-4a9f-4c81-bf49-08bf5765c84a
+
+	column city
+		dataType: string
+		lineageTag: 1cbb9c9b-754b-4f6f-8cf9-0ba20f101db4
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column lat
+		dataType: double
+		lineageTag: e7a787e5-0dc0-4f80-aec6-62e867aef7ee
+		summarizeBy: sum
+		sourceColumn: lat
+
+		annotation SummarizationSetBy = Automatic
+
+	column lon
+		dataType: double
+		lineageTag: eeb9445d-52d6-4986-b50b-b429a59e3d56
+		summarizeBy: sum
+		sourceColumn: lon
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_tx
+		dataType: int64
+		lineageTag: 214c4c5b-e79c-4a2e-b87b-865e67f57035
+		summarizeBy: sum
+		sourceColumn: n_tx
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_alert
+		dataType: int64
+		lineageTag: 2264cc2b-60ed-41aa-90ac-9b705aaa51bd
+		summarizeBy: sum
+		sourceColumn: n_alert
+
+		annotation SummarizationSetBy = Automatic
+
+	column alert_rate
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 19c7906d-07a6-495b-92e7-5b504a1876cb
+		summarizeBy: sum
+		sourceColumn: alert_rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_fraud
+		dataType: int64
+		lineageTag: 7f3ef6a0-39fc-4bcf-b004-f9a7f0ebb0ae
+		summarizeBy: sum
+		sourceColumn: n_fraud
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_amount_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: 32afe3c8-0977-4a36-834c-a982d686580f
+		summarizeBy: sum
+		sourceColumn: fraud_amount_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_city_risk = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_city_risk"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

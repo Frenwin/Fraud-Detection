@@ -1,0 +1,152 @@
+table r_e9_variants
+	lineageTag: 418cee63-3a0e-488e-9a6c-f1624b29213c
+
+	measure 'Best Valid AUPRC' = MAX('r_e9_variants'[valid_auprc])
+		formatString: 0.000
+		lineageTag: d97c330d-ebfa-48c4-9ba2-2a682d696da5
+
+	measure 'Fastest Model p99 (ms)' = MIN('r_e9_variants'[p99_ms])
+		formatString: 0.000
+		lineageTag: 1a9ea216-bb1e-4f2c-b373-89e76b0b1c38
+
+	column variant
+		dataType: string
+		lineageTag: 60090098-3685-4e12-b8f5-ee3a5630e502
+		summarizeBy: none
+		sourceColumn: variant
+
+		annotation SummarizationSetBy = Automatic
+
+	column family
+		dataType: string
+		lineageTag: e992f770-9ca3-42c5-a3bd-180e38c4dccb
+		summarizeBy: none
+		sourceColumn: family
+
+		annotation SummarizationSetBy = Automatic
+
+	column runtime
+		dataType: string
+		lineageTag: 04f9a518-8d93-4b7e-8dd8-0809458d7620
+		summarizeBy: none
+		sourceColumn: runtime
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_features
+		dataType: int64
+		lineageTag: 7d72901b-e28d-43b9-9ce4-82e586205256
+		summarizeBy: sum
+		sourceColumn: n_features
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_trees
+		dataType: double
+		lineageTag: 7c5f6cb0-e641-4f20-b2a2-8e72ed0464bf
+		summarizeBy: sum
+		sourceColumn: n_trees
+
+		annotation SummarizationSetBy = Automatic
+
+	column size_kb
+		dataType: int64
+		lineageTag: 53f198b7-be1a-4088-89f1-1eeddfb5f613
+		summarizeBy: sum
+		sourceColumn: size_kb
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: cbd5b73d-fc4a-465e-b598-0cdb38f005a8
+		summarizeBy: sum
+		sourceColumn: valid_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: d42fb1bd-863e-4ea3-88c4-ce9a48f44c50
+		summarizeBy: sum
+		sourceColumn: test_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column p50_ms
+		dataType: double
+		lineageTag: fa258cbb-0cd3-4088-a07d-859d30f53870
+		summarizeBy: sum
+		sourceColumn: p50_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p95_ms
+		dataType: double
+		lineageTag: 3a978140-251d-41fc-974e-95a47818a14b
+		summarizeBy: sum
+		sourceColumn: p95_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_ms
+		dataType: double
+		formatString: 0.000
+		lineageTag: b3184b36-6039-4ad9-868c-22e0738d49b1
+		summarizeBy: sum
+		sourceColumn: p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column mean_ms
+		dataType: double
+		lineageTag: 8a631ba1-0324-4855-8458-26440c07a0c0
+		summarizeBy: sum
+		sourceColumn: mean_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column batch_rows_per_s
+		dataType: double
+		lineageTag: d58d5ba8-429a-4bd6-a40f-8622f5accfe2
+		summarizeBy: sum
+		sourceColumn: batch_rows_per_s
+
+		annotation SummarizationSetBy = Automatic
+
+	column explain_p50_ms
+		dataType: double
+		lineageTag: 7c90dbb2-d504-48cc-ac73-0eb20b3c1782
+		summarizeBy: sum
+		sourceColumn: explain_p50_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column explain_p99_ms
+		dataType: double
+		lineageTag: 5bf7fd53-8dd2-4fa0-b296-3d7162f28a8c
+		summarizeBy: sum
+		sourceColumn: explain_p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column pareto
+		dataType: boolean
+		lineageTag: 4353b06b-8702-48d8-8e11-a886acea40c7
+		summarizeBy: none
+		sourceColumn: pareto
+
+		annotation SummarizationSetBy = Automatic
+
+	partition r_e9_variants = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="r_e9_variants"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

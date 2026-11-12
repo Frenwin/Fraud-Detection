@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "frauddet"
+version = "1.0.0"
+description = "Real-time fraud detection: research, optimization, latency trade-offs, and live BI dashboard"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "pyarrow>=14",
+  "pyyaml>=6",
+  "scikit-learn>=1.4",
+  "imbalanced-learn>=0.12",
+  "lightgbm>=4.3",
+  "xgboost>=2.0",
+  "catboost>=1.2",
+  "optuna>=3.6",
+  "shap>=0.45",
+  "onnx>=1.16",
+  "onnxmltools>=1.12",
+  "onnxruntime>=1.18",
+  "matplotlib>=3.7",
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "httpx>=0.27",
+  "sqlalchemy>=2.0",
+  "psycopg2-binary>=2.9",
+  "streamlit>=1.40",
+  "plotly>=5.20",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

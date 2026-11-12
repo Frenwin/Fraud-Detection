@@ -1,0 +1,131 @@
+table v_alert_queue
+	lineageTag: 1a02a154-bde1-4d09-a862-97057e01082c
+
+	measure 'Decision Color' = SWITCH(SELECTEDVALUE('v_alert_queue'[decision]), "BLOCK", "#d03b3b", "REVIEW", "#a86400", "#52514e")
+		lineageTag: 80a67869-3977-4dbc-a101-ef3ba93b6a6f
+
+	column tx_id
+		dataType: int64
+		lineageTag: b43c4504-911f-41cc-b09c-b55d9c37dd9f
+		summarizeBy: sum
+		sourceColumn: tx_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column scored_at_wib
+		dataType: dateTime
+		formatString: HH:mm:ss
+		lineageTag: d6197230-9d8f-4f3c-814f-66c60cc3788c
+		summarizeBy: none
+		sourceColumn: scored_at_wib
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: int64
+		lineageTag: af5aaa6e-1695-490d-a516-c91ef4f8ff6f
+		summarizeBy: sum
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column channel
+		dataType: string
+		lineageTag: 54b1353a-9c55-44c6-aef2-e9290b254bb8
+		summarizeBy: none
+		sourceColumn: channel
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: 6e0b7f33-c204-4470-b136-0dcb90fa5e10
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 5faef560-2ab8-4da2-a0d9-ae2c3936a249
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: 490c8e8d-219e-4a34-a723-14f8565627dd
+		summarizeBy: sum
+		sourceColumn: amount_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_score
+		dataType: double
+		formatString: 0.000
+		lineageTag: 9d4eb9ee-ec47-46f6-aa3b-7ad5a701fa4b
+		summarizeBy: sum
+		sourceColumn: fraud_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column decision
+		dataType: string
+		lineageTag: 7c9a2d25-e4be-441d-8149-43a30da9f65b
+		summarizeBy: none
+		sourceColumn: decision
+
+		annotation SummarizationSetBy = Automatic
+
+	column reason_1
+		dataType: string
+		lineageTag: 4cff836c-e489-428c-a119-66b43d007acc
+		summarizeBy: none
+		sourceColumn: reason_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column reason_2
+		dataType: string
+		lineageTag: c64dd3d6-3941-4b46-99b6-c6e9e28891d6
+		summarizeBy: none
+		sourceColumn: reason_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column reason_3
+		dataType: string
+		lineageTag: 2d78fdd4-8d3d-49d5-9902-e024f55a89bc
+		summarizeBy: none
+		sourceColumn: reason_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column label_status
+		dataType: string
+		lineageTag: e9d2af5e-306b-4f4c-9173-7b5e677b2bf8
+		summarizeBy: none
+		sourceColumn: label_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column scenario
+		dataType: string
+		lineageTag: cb362508-8fbd-450e-9de1-6e25f37990ec
+		summarizeBy: none
+		sourceColumn: scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_alert_queue = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_alert_queue"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

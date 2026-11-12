@@ -1,0 +1,7 @@
+scenario,n,caught,amount,recall
+merchant_collusion,73,22,80812000.0,0.3013698630136986
+social_engineering,317,97,1061156000.0,0.305993690851735
+card_cloning,71,62,128522000.0,0.8732394366197183
+account_takeover,70,70,264100000.0,1.0
+cnp_stolen_card,452,452,698081000.0,1.0
+card_testing,403,403,233939000.0,1.0

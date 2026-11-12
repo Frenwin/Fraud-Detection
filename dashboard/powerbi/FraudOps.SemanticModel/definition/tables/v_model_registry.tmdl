@@ -1,0 +1,112 @@
+table v_model_registry
+	lineageTag: ce5af34a-f47d-4661-b5d9-fef92575f6f4
+
+	column model_version
+		dataType: string
+		lineageTag: f961c925-287d-44a5-8224-03fcd7e46afd
+		summarizeBy: none
+		sourceColumn: model_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column deployed_at_wib
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d639f6cf-4adf-4b75-805d-072cc45fe70c
+		summarizeBy: none
+		sourceColumn: deployed_at_wib
+
+		annotation SummarizationSetBy = Automatic
+
+	column variant
+		dataType: string
+		lineageTag: d549c79f-9883-43e9-baf9-6a0450217e12
+		summarizeBy: none
+		sourceColumn: variant
+
+		annotation SummarizationSetBy = Automatic
+
+	column runtime
+		dataType: string
+		lineageTag: 86685f60-6602-406b-9bd4-cb6a3b904f9e
+		summarizeBy: none
+		sourceColumn: runtime
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_features
+		dataType: int64
+		lineageTag: 82990b0b-0938-419d-9b83-b077927aba53
+		summarizeBy: sum
+		sourceColumn: n_features
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_trees
+		dataType: int64
+		lineageTag: f0bf88e4-f3bd-4609-ba95-ded676766cee
+		summarizeBy: sum
+		sourceColumn: n_trees
+
+		annotation SummarizationSetBy = Automatic
+
+	column t_review
+		dataType: double
+		lineageTag: 6656a853-e5be-49f4-a63d-b220ef2d28ce
+		summarizeBy: sum
+		sourceColumn: t_review
+
+		annotation SummarizationSetBy = Automatic
+
+	column t_block
+		dataType: double
+		lineageTag: 83a3feae-d19a-4217-b74a-ce608db7f656
+		summarizeBy: sum
+		sourceColumn: t_block
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: fc3bce1f-3fb2-41a0-8629-bb5ce533196e
+		summarizeBy: sum
+		sourceColumn: valid_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: 9fbbd768-3b95-436e-967f-dbcfd27bebe3
+		summarizeBy: sum
+		sourceColumn: test_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_model_ms
+		dataType: double
+		lineageTag: fda425db-5ad3-4848-8e5c-6d4c786dd0f6
+		summarizeBy: sum
+		sourceColumn: p99_model_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_e2e_ms
+		dataType: double
+		lineageTag: ec2936d4-7e0b-4a7e-a1f5-82cde8b8e487
+		summarizeBy: sum
+		sourceColumn: p99_e2e_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_model_registry = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_model_registry"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

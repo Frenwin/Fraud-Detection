@@ -1,0 +1,94 @@
+table r_e10_end_to_end
+	lineageTag: fdaebb7d-684f-43e1-86d1-32a62794a21e
+
+	column mode
+		dataType: string
+		lineageTag: 84597ccf-247c-423c-ba6b-e87957a634b1
+		summarizeBy: none
+		sourceColumn: mode
+
+		annotation SummarizationSetBy = Automatic
+
+	column runtime
+		dataType: string
+		lineageTag: 3101ba70-7e9b-418c-9912-a6b8a2b6fdce
+		summarizeBy: none
+		sourceColumn: runtime
+
+		annotation SummarizationSetBy = Automatic
+
+	column features_mean_ms
+		dataType: double
+		lineageTag: b400b7e9-9698-4810-ad08-b5794fa312b8
+		summarizeBy: sum
+		sourceColumn: features_mean_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column model_mean_ms
+		dataType: double
+		lineageTag: 52d97f00-bcc5-4ff1-bb3e-7532b3b5e505
+		summarizeBy: sum
+		sourceColumn: model_mean_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column explain_mean_ms
+		dataType: double
+		lineageTag: 3acbfa71-cf23-4d3e-a6db-1d82925e23e2
+		summarizeBy: sum
+		sourceColumn: explain_mean_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_mean_ms
+		dataType: double
+		lineageTag: 7adb7e30-dad6-4e11-8807-da10bfbe5fa4
+		summarizeBy: sum
+		sourceColumn: total_mean_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_p50_ms
+		dataType: double
+		lineageTag: 5bc25c7f-d4c6-4979-8581-a7f73a1bc612
+		summarizeBy: sum
+		sourceColumn: total_p50_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_p95_ms
+		dataType: double
+		lineageTag: 77c69df2-7a15-4818-96fd-6bb18f0e51e2
+		summarizeBy: sum
+		sourceColumn: total_p95_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_p99_ms
+		dataType: double
+		lineageTag: 37ddad6b-b7b3-406a-9863-042d79cd7a1e
+		summarizeBy: sum
+		sourceColumn: total_p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column alert_rate
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 9a490e32-f044-4afc-9ab6-752534b59364
+		summarizeBy: sum
+		sourceColumn: alert_rate
+
+		annotation SummarizationSetBy = Automatic
+
+	partition r_e10_end_to_end = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="r_e10_end_to_end"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

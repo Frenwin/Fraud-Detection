@@ -1,0 +1,45 @@
+table v_score_distribution
+	lineageTag: 1fe67100-07c8-427e-bf3b-017f2783bb45
+
+	column bucket
+		dataType: int64
+		lineageTag: e3b84304-9bc7-41b4-80f3-b632093141be
+		summarizeBy: sum
+		sourceColumn: bucket
+
+		annotation SummarizationSetBy = Automatic
+
+	column score_from
+		dataType: double
+		lineageTag: ecd03934-10fb-42ad-9430-6b42793b5068
+		summarizeBy: sum
+		sourceColumn: score_from
+
+		annotation SummarizationSetBy = Automatic
+
+	column label
+		dataType: string
+		lineageTag: 64dc026c-f7ca-420f-acb3-7f094b71a962
+		summarizeBy: none
+		sourceColumn: label
+
+		annotation SummarizationSetBy = Automatic
+
+	column n
+		dataType: int64
+		lineageTag: 9d6917f5-9d10-436e-92d2-e4d29de938fb
+		summarizeBy: sum
+		sourceColumn: n
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_score_distribution = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_score_distribution"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

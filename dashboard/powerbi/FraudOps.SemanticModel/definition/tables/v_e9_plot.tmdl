@@ -1,0 +1,91 @@
+table v_e9_plot
+	lineageTag: 09b98856-d8f4-4998-af30-0c32ffe05585
+
+	measure 'Pareto Color' = IF(SELECTEDVALUE('v_e9_plot'[pareto], FALSE()), "#2a78d6", "#c3c2b7")
+		lineageTag: a05ab21a-d27d-4646-853b-aff1e7a6cae4
+
+	column variant
+		dataType: string
+		lineageTag: ab3299db-6ed0-43dc-9f3f-f3a072433d70
+		summarizeBy: none
+		sourceColumn: variant
+
+		annotation SummarizationSetBy = Automatic
+
+	column family
+		dataType: string
+		lineageTag: 90a1aed1-b8f4-48f0-9b5f-32d57059d6a9
+		summarizeBy: none
+		sourceColumn: family
+
+		annotation SummarizationSetBy = Automatic
+
+	column runtime
+		dataType: string
+		lineageTag: ccc9b829-7366-48ff-a49d-77f666c5cf9a
+		summarizeBy: none
+		sourceColumn: runtime
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: fd8e39ea-82a9-49bd-83de-d42dca0ea95f
+		summarizeBy: sum
+		sourceColumn: valid_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column test_auprc
+		dataType: double
+		formatString: 0.000
+		lineageTag: fcbcdff0-cece-4e99-9400-b98a7f5c688c
+		summarizeBy: sum
+		sourceColumn: test_auprc
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_ms
+		dataType: double
+		formatString: 0.000
+		lineageTag: dd6102d7-ea66-492f-8fa0-46b9f14fa96d
+		summarizeBy: sum
+		sourceColumn: p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column log10_p99_ms
+		dataType: double
+		lineageTag: 20f12613-b9f3-4217-8989-fe29506cbce0
+		summarizeBy: sum
+		sourceColumn: log10_p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column size_kb
+		dataType: int64
+		lineageTag: 25158a80-7c6d-4236-853f-d2d83a0fc8d0
+		summarizeBy: sum
+		sourceColumn: size_kb
+
+		annotation SummarizationSetBy = Automatic
+
+	column pareto
+		dataType: boolean
+		lineageTag: 65df0787-cb96-40cf-bcf9-943dccd2e9b5
+		summarizeBy: none
+		sourceColumn: pareto
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_e9_plot = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_e9_plot"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

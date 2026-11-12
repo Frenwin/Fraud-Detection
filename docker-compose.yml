@@ -1,0 +1,52 @@
+# docker compose up -d db                 -> only PostgreSQL (run API/replay locally)
+# docker compose --profile app up -d      -> PostgreSQL + scoring API + stream replay (after `make research`)
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: frauddet-db
+    environment:
+      POSTGRES_USER: fraud
+      POSTGRES_PASSWORD: fraud
+      POSTGRES_DB: frauddb
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./sql/views.sql:/docker-entrypoint-initdb.d/02_views.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fraud -d frauddb"]
+      interval: 3s
+      retries: 20
+
+  api:
+    profiles: ["app"]
+    build: .
+    container_name: frauddet-api
+    command: ["python", "-m", "frauddet.serving.api"]
+    environment:
+      FRAUDDET_DB_URL: postgresql+psycopg2://fraud:fraud@db:5432/frauddb
+      FRAUDDET_HOST: 0.0.0.0
+      FRAUDDET_PORT: "8010"
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./artifacts:/app/artifacts:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  replay:
+    profiles: ["app"]
+    build: .
+    container_name: frauddet-replay
+    command: ["sh", "-c", "sleep 8 && python -m frauddet.stream.replay --api http://api:8010 --tps 40"]
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

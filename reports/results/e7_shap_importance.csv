@@ -1,0 +1,30 @@
+feature,label,mean_abs_shap
+category_code,Kategori merchant,0.5761644429860597
+dist_home_km,Jarak dari domisili,0.5183268347221707
+amount_log,Nominal transaksi,0.5040081295287713
+speed_prev_kmh,Kecepatan perpindahan mustahil,0.32773999757039385
+c_amt_ratio_30d,Nominal jauh di atas kebiasaan,0.32560015354482824
+dist_prev_km,Jarak dari transaksi sebelumnya,0.30066240388704635
+c_amt_z_30d,Nominal menyimpang (z-score),0.25949461425932424
+t_risk_delayed,Riwayat chargeback merchant,0.2584975708576886
+t_cnt_7d,Keramaian merchant 7 hari,0.22917271290983998
+d_n_customers_30d,Perangkat dipakai banyak kartu,0.19437911483582693
+c_secs_since_last_log,Jeda sejak transaksi terakhir,0.1528611085198611
+t_n_delayed,Volume historis merchant,0.1388281353493681
+c_avg_amt_30d_log,Rata-rata belanja 30 hari,0.13421438563625288
+c_sum_24h_log,Total belanja 24 jam,0.13245732158094412
+hour,Jam transaksi,0.12906254090310676
+channel_code,Kanal transaksi,0.10778405578629564
+c_cnt_7d,Frekuensi 7 hari terakhir,0.08240298621608019
+dow,Hari dalam minggu,0.08230896735837845
+c_new_terminal,Merchant baru bagi nasabah,0.07423308499439232
+c_cnt_24h,Frekuensi 24 jam terakhir,0.07422830705927057
+t_cnt_24h,Keramaian merchant 24 jam,0.06948051570429072
+d_cnt_1h,Aktivitas perangkat 1 jam,0.03187644648033865
+d_new_for_customer,Perangkat baru,0.031087308480015573
+is_night,Transaksi dini hari,0.01131421465486812
+c_new_category,Kategori baru bagi nasabah,0.007208823621358551
+c_cnt_1h,Frekuensi 1 jam terakhir,0.004840270718951007
+c_new_city,Kota baru bagi nasabah,0.004722237780033655
+c_small_cnt_1h,Burst nominal kecil (card testing),0.0045154285813843315
+is_weekend,Akhir pekan,0.00418536957524189

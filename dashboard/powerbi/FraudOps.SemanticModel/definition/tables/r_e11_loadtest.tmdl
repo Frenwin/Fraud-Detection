@@ -1,0 +1,83 @@
+table r_e11_loadtest
+	lineageTag: 8e9173ca-1897-4b7f-b3db-2e86e70f82f7
+
+	measure 'Peak Throughput (req/s)' = MAX('r_e11_loadtest'[throughput_rps])
+		formatString: #,0
+		lineageTag: e073f901-bb98-47c9-b913-f3765273ed67
+
+	column endpoint
+		dataType: string
+		lineageTag: 8482abed-c4da-4450-9ac1-0175d9f91fc9
+		summarizeBy: none
+		sourceColumn: endpoint
+
+		annotation SummarizationSetBy = Automatic
+
+	column concurrency
+		dataType: int64
+		lineageTag: 40b724df-f12b-4939-947d-fb649b161776
+		summarizeBy: sum
+		sourceColumn: concurrency
+
+		annotation SummarizationSetBy = Automatic
+
+	column requests
+		dataType: int64
+		lineageTag: c9f4010b-44fd-41ef-8f63-117abc1a2eeb
+		summarizeBy: sum
+		sourceColumn: requests
+
+		annotation SummarizationSetBy = Automatic
+
+	column throughput_rps
+		dataType: double
+		formatString: #,0
+		lineageTag: 9866b163-4632-4fe6-86c4-76882fab34bf
+		summarizeBy: sum
+		sourceColumn: throughput_rps
+
+		annotation SummarizationSetBy = Automatic
+
+	column p50_ms
+		dataType: double
+		lineageTag: 4f6776ed-b42e-433a-92b7-e3184469d324
+		summarizeBy: sum
+		sourceColumn: p50_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p95_ms
+		dataType: double
+		lineageTag: 2d925156-75b8-49df-accd-252eff6ff593
+		summarizeBy: sum
+		sourceColumn: p95_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_ms
+		dataType: double
+		formatString: 0.000
+		lineageTag: 77052872-08ec-40fa-8da3-d81e38750e88
+		summarizeBy: sum
+		sourceColumn: p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column server_p99_ms
+		dataType: double
+		lineageTag: 1cc40342-aeba-4767-8bcd-400fd419589d
+		summarizeBy: sum
+		sourceColumn: server_p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	partition r_e11_loadtest = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="r_e11_loadtest"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

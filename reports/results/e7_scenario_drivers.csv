@@ -1,0 +1,7 @@
+scenario,n,top1,top2,top3,top1_shap,top2_shap,top3_shap
+account_takeover,70,Jarak dari domisili,Perangkat dipakai banyak kartu,Jarak dari transaksi sebelumnya,3.5293006727265834,2.3735113410973883,1.6396917637592217
+card_cloning,71,Jarak dari domisili,Nominal transaksi,Nominal jauh di atas kebiasaan,3.257221042450477,1.8892396779021228,1.138673143968537
+card_testing,403,Jarak dari domisili,Jarak dari transaksi sebelumnya,Perangkat dipakai banyak kartu,3.1274141657427896,2.920894518718584,2.579820515129188
+cnp_stolen_card,452,Jarak dari domisili,Perangkat dipakai banyak kartu,Jarak dari transaksi sebelumnya,5.252882202355907,2.3921583186728905,1.6953262977448298
+merchant_collusion,73,Riwayat chargeback merchant,Nominal jauh di atas kebiasaan,Nominal transaksi,3.19074807729385,0.42707894630174076,0.40659353721239344
+social_engineering,317,Nominal jauh di atas kebiasaan,Nominal transaksi,Kecepatan perpindahan mustahil,1.3889126263848028,1.1405439103775965,0.7129672889710298

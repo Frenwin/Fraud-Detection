@@ -1,0 +1,30 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["PgServer", "PgDatabase", "v_live_transactions", "v_kpi_current", "v_kpi_minute", "v_alert_queue", "v_scenario_performance", "v_city_risk", "v_reason_frequency", "v_latency_histogram", "v_score_distribution", "v_drift_top", "v_model_registry", "r_e1_model_comparison", "r_e9_variants", "r_e10_end_to_end", "r_e11_loadtest", "r_e6_threshold_sweep_valid", "v_e9_plot", "v_e11_plot"]
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+ref table v_live_transactions
+ref table v_kpi_current
+ref table v_kpi_minute
+ref table v_alert_queue
+ref table v_scenario_performance
+ref table v_city_risk
+ref table v_reason_frequency
+ref table v_latency_histogram
+ref table v_score_distribution
+ref table v_drift_top
+ref table v_model_registry
+ref table r_e1_model_comparison
+ref table r_e9_variants
+ref table r_e10_end_to_end
+ref table r_e11_loadtest
+ref table r_e6_threshold_sweep_valid
+ref table v_e9_plot
+ref table v_e11_plot

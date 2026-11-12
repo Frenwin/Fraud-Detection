@@ -1,0 +1,37 @@
+table v_latency_histogram
+	lineageTag: 9b175939-9142-4626-b194-e7af18e5d43c
+
+	column bucket
+		dataType: int64
+		lineageTag: 84d56d52-dc5b-448b-99a5-99e1376f022b
+		summarizeBy: sum
+		sourceColumn: bucket
+
+		annotation SummarizationSetBy = Automatic
+
+	column bucket_start_ms
+		dataType: double
+		lineageTag: 209b13c5-a86a-498d-9fcd-a27e153e9569
+		summarizeBy: sum
+		sourceColumn: bucket_start_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column n
+		dataType: int64
+		lineageTag: 1e752de7-5e87-4390-99c9-349d1733e3b6
+		summarizeBy: sum
+		sourceColumn: n
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_latency_histogram = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_latency_histogram"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

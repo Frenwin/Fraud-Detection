@@ -1,0 +1,321 @@
+table v_live_transactions
+	lineageTag: d6ca76f5-8d75-4f6c-a85d-d5c95430ee7d
+
+	measure 'Total Transactions' = COUNTROWS('v_live_transactions')
+		formatString: #,0
+		lineageTag: cbdf570f-b005-4a85-9d6f-84e51c2945fe
+
+	measure Alerts = SUM('v_live_transactions'[is_alert])
+		formatString: #,0
+		lineageTag: 4ed07485-0fb5-420a-bb60-161fd44c09d7
+
+	measure Blocks = SUM('v_live_transactions'[is_block])
+		formatString: #,0
+		lineageTag: cb143a66-a4b9-4eac-afb5-65252be920c9
+
+	measure 'Alert Rate' = DIVIDE([Alerts], [Total Transactions])
+		formatString: 0.00%
+		lineageTag: b6bab3f3-68f0-4e55-8464-d3b6107a5ddf
+
+	measure 'Block Rate' = DIVIDE([Blocks], [Total Transactions])
+		formatString: 0.00%
+		lineageTag: 4536e53f-6fdd-4d06-9346-5d3844fa3cb5
+
+	measure 'Labeled Transactions' = CALCULATE([Total Transactions], NOT ISBLANK('v_live_transactions'[is_fraud]))
+		formatString: #,0
+		lineageTag: 60ef6b2d-f5db-4d3e-bc72-03d6bf897040
+
+	measure 'Fraud Confirmed' = CALCULATE([Total Transactions], 'v_live_transactions'[is_fraud] = 1)
+		formatString: #,0
+		lineageTag: a571a818-1b30-497d-8cb6-9462acf80e7b
+
+	measure 'Fraud Caught' = CALCULATE([Total Transactions], 'v_live_transactions'[is_fraud] = 1, 'v_live_transactions'[is_alert] = 1)
+		formatString: #,0
+		lineageTag: e9c74dd0-8c09-4dd5-9f9f-cd0bd2d77bdc
+
+	measure 'False Positives' = CALCULATE([Total Transactions], 'v_live_transactions'[is_fraud] = 0, 'v_live_transactions'[is_alert] = 1)
+		formatString: #,0
+		lineageTag: 153db2a6-f43d-4f6e-9b32-41ad35be1036
+
+	measure Precision = DIVIDE([Fraud Caught], CALCULATE([Alerts], NOT ISBLANK('v_live_transactions'[is_fraud])))
+		formatString: 0.0%
+		lineageTag: d485cb74-784d-482f-a031-43a1ddcc8b64
+
+	measure Recall = DIVIDE([Fraud Caught], [Fraud Confirmed])
+		formatString: 0.0%
+		lineageTag: 759ea444-473f-47db-8128-8af8eefab3fa
+
+	measure 'Label Coverage' = DIVIDE([Labeled Transactions], [Total Transactions])
+		formatString: 0.0%
+		lineageTag: afe09449-45e0-4863-b011-a6de2659b573
+
+	measure 'Total Amount (Rp)' = SUM('v_live_transactions'[amount_idr])
+		formatString: #,0
+		lineageTag: f2903216-6e6d-4d5d-a59c-8a4b8527acc6
+
+	measure 'Fraud Amount (Rp)' = CALCULATE([Total Amount (Rp)], 'v_live_transactions'[is_fraud] = 1)
+		formatString: #,0
+		lineageTag: 4b4d8225-654f-4950-b332-4b56d097f170
+
+	measure 'Fraud Intercepted (Rp)' = CALCULATE([Total Amount (Rp)], 'v_live_transactions'[is_fraud] = 1, 'v_live_transactions'[is_alert] = 1)
+		formatString: #,0
+		lineageTag: e1166f3b-aabf-43d0-a989-695392260f17
+
+	measure 'Fraud Missed (Rp)' = [Fraud Amount (Rp)] - [Fraud Intercepted (Rp)]
+		formatString: #,0
+		lineageTag: 08876566-346e-43fb-b86f-adad9d4dae66
+
+	measure 'Loss Prevented %' = DIVIDE([Fraud Intercepted (Rp)], [Fraud Amount (Rp)])
+		formatString: 0.0%
+		lineageTag: 2bc18a93-f6fb-402d-b117-ffae1ebf46d4
+
+	measure 'Net Savings (Rp)' = [Fraud Intercepted (Rp)] - 15000 * [Alerts] - 25000 * [False Positives]
+		formatString: #,0
+		lineageTag: bb70e788-e8dc-45b6-9070-8146e07894fa
+
+	measure 'Fraud Amount Label' = VAR v = [Fraud Amount (Rp)] RETURN IF(ISBLANK(v), "–", IF(ABS(v) >= 1e9, "Rp " & FORMAT(v / 1e9, "#,0.00", "id-ID") & " M", "Rp " & FORMAT(v / 1e6, "#,0.0", "id-ID") & " jt"))
+		lineageTag: cbabe803-caea-471b-86bd-68590b0d916c
+
+	measure 'Fraud Intercepted Label' = VAR v = [Fraud Intercepted (Rp)] RETURN IF(ISBLANK(v), "–", IF(ABS(v) >= 1e9, "Rp " & FORMAT(v / 1e9, "#,0.00", "id-ID") & " M", "Rp " & FORMAT(v / 1e6, "#,0.0", "id-ID") & " jt"))
+		lineageTag: 79e57caa-cfd1-4464-95b3-173eec630faf
+
+	measure 'Fraud Missed Label' = VAR v = [Fraud Missed (Rp)] RETURN IF(ISBLANK(v), "–", IF(ABS(v) >= 1e9, "Rp " & FORMAT(v / 1e9, "#,0.00", "id-ID") & " M", "Rp " & FORMAT(v / 1e6, "#,0.0", "id-ID") & " jt"))
+		lineageTag: c17e9f35-67ff-4b1a-a75b-3b15ccbea05b
+
+	measure 'Net Savings Label' = VAR v = [Net Savings (Rp)] RETURN IF(ISBLANK(v), "–", IF(ABS(v) >= 1e9, "Rp " & FORMAT(v / 1e9, "#,0.00", "id-ID") & " M", "Rp " & FORMAT(v / 1e6, "#,0.0", "id-ID") & " jt"))
+		lineageTag: 65f79d5c-ed2b-443a-9232-9e745f13c406
+
+	measure 'Last Update' = "● LIVE · update " & FORMAT(MAX('v_live_transactions'[scored_at_wib]), "HH:mm:ss") & " WIB"
+		lineageTag: 69958d91-7bb0-499d-a05e-7cd6bd2e626e
+
+	column tx_id
+		dataType: int64
+		lineageTag: 6cac08fe-8658-4a2d-9af8-dc77373e438f
+		summarizeBy: sum
+		sourceColumn: tx_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column scored_at_wib
+		dataType: dateTime
+		formatString: HH:mm:ss
+		lineageTag: a1cd4c0e-124a-47ad-9416-77d5349d5233
+		summarizeBy: none
+		sourceColumn: scored_at_wib
+
+		annotation SummarizationSetBy = Automatic
+
+	column minute_wib
+		dataType: dateTime
+		formatString: HH:mm
+		lineageTag: a8e053a7-73e0-4fe2-893c-30dbef15cd69
+		summarizeBy: none
+		sourceColumn: minute_wib
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_ts
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 40887b43-ea45-4ba6-b115-3ad5f12e7733
+		summarizeBy: none
+		sourceColumn: event_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: int64
+		lineageTag: 704bfca4-884b-4362-abb1-e99423b0cb4e
+		summarizeBy: sum
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column terminal_id
+		dataType: int64
+		lineageTag: dab4700e-72e3-4b9e-93c0-a15a8737df3e
+		summarizeBy: sum
+		sourceColumn: terminal_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column channel
+		dataType: string
+		lineageTag: 0da5f185-434d-4941-8ea8-6486ba43676f
+		summarizeBy: none
+		sourceColumn: channel
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: 176cf7bb-39a4-4535-887c-6a98aab84687
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: cea163f0-7bc1-4b89-aa24-564c5c27fcba
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column lat
+		dataType: double
+		lineageTag: 88ab3f4c-3a9d-40ed-bc00-c9b45847ea1f
+		summarizeBy: sum
+		sourceColumn: lat
+
+		annotation SummarizationSetBy = Automatic
+
+	column lon
+		dataType: double
+		lineageTag: 6cba2111-b1e9-4dc5-9a3c-6d8b29f494d2
+		summarizeBy: sum
+		sourceColumn: lon
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: 48ed036e-a9ff-42ee-8038-24a17b8e1b72
+		summarizeBy: sum
+		sourceColumn: amount_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_score
+		dataType: double
+		formatString: 0.000
+		lineageTag: 2ec2c3c2-0a33-42cf-8dfc-1e166b7f778c
+		summarizeBy: sum
+		sourceColumn: fraud_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column decision
+		dataType: string
+		lineageTag: 2d7af2a3-1af9-493c-ab6a-5586236f64a7
+		summarizeBy: none
+		sourceColumn: decision
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_alert
+		dataType: int64
+		lineageTag: b2b783c5-9e23-40e4-96ed-c5830142da56
+		summarizeBy: sum
+		sourceColumn: is_alert
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_block
+		dataType: int64
+		lineageTag: a14c8134-8520-40b2-91b1-aef2d3c23ab6
+		summarizeBy: sum
+		sourceColumn: is_block
+
+		annotation SummarizationSetBy = Automatic
+
+	column reason_1
+		dataType: string
+		lineageTag: 408ee114-1759-4116-a3dd-d4367d1ca426
+		summarizeBy: none
+		sourceColumn: reason_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column reason_2
+		dataType: string
+		lineageTag: 3653fd1d-80c2-4583-b886-4dd742047c31
+		summarizeBy: none
+		sourceColumn: reason_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column reason_3
+		dataType: string
+		lineageTag: 2f221654-6ac7-4f70-af93-669b300de17d
+		summarizeBy: none
+		sourceColumn: reason_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column latency_ms
+		dataType: double
+		lineageTag: 91afd957-8201-45fd-8db2-e08ac16faac8
+		summarizeBy: sum
+		sourceColumn: latency_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column feature_ms
+		dataType: double
+		lineageTag: 8c6e77c9-9d04-481f-990c-1a3070b04f58
+		summarizeBy: sum
+		sourceColumn: feature_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column model_ms
+		dataType: double
+		lineageTag: 43fd4b00-30a2-4bba-934c-c6979358f658
+		summarizeBy: sum
+		sourceColumn: model_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column explain_ms
+		dataType: double
+		lineageTag: 4f9e610b-9a5d-4315-81c6-92593e692e01
+		summarizeBy: sum
+		sourceColumn: explain_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_fraud
+		dataType: int64
+		lineageTag: 946e24e4-f8ec-4a1d-b44f-fbafe9097bdf
+		summarizeBy: sum
+		sourceColumn: is_fraud
+
+		annotation SummarizationSetBy = Automatic
+
+	column scenario
+		dataType: string
+		lineageTag: 62e40d6f-ad33-4ff9-a442-4a5007d7a43c
+		summarizeBy: none
+		sourceColumn: scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column outcome
+		dataType: string
+		lineageTag: 83e971bf-6cec-4b93-9cee-0a28c0af73d9
+		summarizeBy: none
+		sourceColumn: outcome
+
+		annotation SummarizationSetBy = Automatic
+
+	column model_version
+		dataType: string
+		lineageTag: 56c6b216-b31d-4a77-9aad-dc28e1942648
+		summarizeBy: none
+		sourceColumn: model_version
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_live_transactions = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_live_transactions"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

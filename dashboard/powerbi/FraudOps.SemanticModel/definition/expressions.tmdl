@@ -1,0 +1,9 @@
+expression PgServer = "localhost:5434" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 512e6924-2699-4ac0-8d16-1c27a7b11944
+
+	annotation PBI_ResultType = Text
+
+expression PgDatabase = "frauddb" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: ae22b137-df77-46dc-bb15-d10df71f3e00
+
+	annotation PBI_ResultType = Text

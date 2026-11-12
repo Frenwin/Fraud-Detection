@@ -1,0 +1,50 @@
+table v_drift_top
+	lineageTag: 79fb42db-2dbb-4763-b93a-b15434dcdf2b
+
+	measure 'Drift Color' = VAR p = MAX('v_drift_top'[psi]) RETURN SWITCH(TRUE(), p >= 0.25, "#d03b3b", p >= 0.10, "#fab219", "#0ca30c")
+		lineageTag: 88417946-6d80-4027-87e5-a05979fc5dcf
+
+	column feature
+		dataType: string
+		lineageTag: 87c37444-1662-484f-9117-7df1e7df2f48
+		summarizeBy: none
+		sourceColumn: feature
+
+		annotation SummarizationSetBy = Automatic
+
+	column psi
+		dataType: double
+		formatString: 0.000
+		lineageTag: f8a82b2b-b4e3-48bd-89aa-293a483f8fd4
+		summarizeBy: sum
+		sourceColumn: psi
+
+		annotation SummarizationSetBy = Automatic
+
+	column level
+		dataType: string
+		lineageTag: 6328e6d6-dc37-401f-8c58-0caf5870b49d
+		summarizeBy: none
+		sourceColumn: level
+
+		annotation SummarizationSetBy = Automatic
+
+	column measured_at_wib
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: df4446b3-96e7-494c-a44a-348d344646f9
+		summarizeBy: none
+		sourceColumn: measured_at_wib
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_drift_top = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_drift_top"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

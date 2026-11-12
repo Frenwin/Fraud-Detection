@@ -1,0 +1,32 @@
+{
+  "selected": {
+    "variant": "LightGBM champion (ONNX Runtime)",
+    "family": "LightGBM",
+    "runtime": "onnx",
+    "n_features": 29,
+    "n_trees": 1066.0,
+    "size_kb": 1775,
+    "valid_auprc": 0.9408938137733049,
+    "test_auprc": 0.8440672000637757,
+    "p50_ms": 0.0907,
+    "p95_ms": 0.1171,
+    "p99_ms": 0.13670599999999986,
+    "mean_ms": 0.095064,
+    "batch_rows_per_s": 153559.03782226518,
+    "explain_p50_ms": 3.7377000000000002,
+    "explain_p99_ms": 5.215472999999999,
+    "pareto": true
+  },
+  "e2e_production": {
+    "p50": 0.1425500013283454,
+    "p95": 0.22240999169298442,
+    "p99": 4.208218000130728
+  },
+  "slo": {
+    "p99_model_ms": 2.0,
+    "p99_e2e_ms": 15.0
+  },
+  "slo_met": true,
+  "parity_max_abs_diff": 0.0,
+  "onnx_vs_native_max_abs_diff": 0.0006155800076772472
+}

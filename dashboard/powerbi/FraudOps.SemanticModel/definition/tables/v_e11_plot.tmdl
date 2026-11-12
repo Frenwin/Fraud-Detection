@@ -1,0 +1,55 @@
+table v_e11_plot
+	lineageTag: 24fa6868-e03a-4c49-91a4-443a3b924975
+
+	column endpoint
+		dataType: string
+		lineageTag: 8490e7b6-598f-454e-9d21-a07de76a3a00
+		summarizeBy: none
+		sourceColumn: endpoint
+
+		annotation SummarizationSetBy = Automatic
+
+	column clients
+		dataType: string
+		lineageTag: 88fe139d-da08-44d0-8027-11c4acf54e38
+		summarizeBy: none
+		sourceColumn: clients
+
+		annotation SummarizationSetBy = Automatic
+
+	column throughput_rps
+		dataType: double
+		formatString: #,0
+		lineageTag: bb12653b-6f48-4598-ba3f-86055abfc21b
+		summarizeBy: sum
+		sourceColumn: throughput_rps
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_ms
+		dataType: double
+		formatString: 0.000
+		lineageTag: 63461de4-68d6-4f90-96e6-f408d65d5cec
+		summarizeBy: sum
+		sourceColumn: p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column server_p99_ms
+		dataType: double
+		lineageTag: e166a65c-bc1d-433b-8f2d-c460d3fb2664
+		summarizeBy: sum
+		sourceColumn: server_p99_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_e11_plot = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_e11_plot"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

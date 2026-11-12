@@ -1,0 +1,29 @@
+table v_reason_frequency
+	lineageTag: 338b4a08-e864-470e-a09c-686adba3626c
+
+	column reason
+		dataType: string
+		lineageTag: 0215a710-ec09-4cb1-8aff-11bad4443b6c
+		summarizeBy: none
+		sourceColumn: reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_alerts
+		dataType: int64
+		lineageTag: 8ad1713a-be94-4a51-9784-fb6a2fa3c501
+		summarizeBy: sum
+		sourceColumn: n_alerts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_reason_frequency = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_reason_frequency"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

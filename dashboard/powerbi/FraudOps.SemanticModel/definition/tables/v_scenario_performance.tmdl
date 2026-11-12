@@ -1,0 +1,67 @@
+table v_scenario_performance
+	lineageTag: b82931bd-66b7-4e72-9725-61f0b32dc78f
+
+	measure 'Recall Color' = VAR r = MAX('v_scenario_performance'[recall]) RETURN SWITCH(TRUE(), r < 0.5, "#d03b3b", r < 0.8, "#ec835a", "#2a78d6")
+		lineageTag: d31dd172-156d-418b-905c-e56e2ed47404
+
+	column scenario
+		dataType: string
+		lineageTag: 340ece76-6e51-43a3-ab08-6452da83aa1a
+		summarizeBy: none
+		sourceColumn: scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_fraud
+		dataType: int64
+		lineageTag: 2eb68e03-4f92-44d4-aad1-e795c396341b
+		summarizeBy: sum
+		sourceColumn: n_fraud
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_caught
+		dataType: int64
+		lineageTag: 81b4e187-2e9d-4857-8d78-85eedb02156c
+		summarizeBy: sum
+		sourceColumn: n_caught
+
+		annotation SummarizationSetBy = Automatic
+
+	column recall
+		dataType: double
+		formatString: 0%
+		lineageTag: 7488611c-452d-4c85-a74a-0a5fadb242e1
+		summarizeBy: sum
+		sourceColumn: recall
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: e695ed15-237b-4703-8d82-b34f87541084
+		summarizeBy: sum
+		sourceColumn: amount_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_caught_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: c279a0db-628f-4e4b-8e7b-692305c6db23
+		summarizeBy: sum
+		sourceColumn: amount_caught_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_scenario_performance = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_scenario_performance"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,23 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: pip }
+      - run: pip install -r requirements.txt && pip install -e .
+      - name: unit tests (feature engine, metrics, policy)
+        run: pytest -q tests/test_features.py tests/test_metrics_policy.py
+      - name: smoke pipeline (small simulation -> features -> parity)
+        run: |
+          python - <<'PY'
+          import yaml, pathlib
+          c = yaml.safe_load(open("configs/config.yaml"))
+          c["simulation"].update(n_customers=400, n_pos_terminals=600, n_atm=60, n_online_merchants=60)
+          for k in c["simulation"]["scenarios"]: c["simulation"]["scenarios"][k] = max(4, c["simulation"]["scenarios"][k] // 10)
+          yaml.safe_dump(c, open("configs/ci.yaml", "w"))
+          PY
+          FRAUDDET_CONFIG=configs/ci.yaml python -m frauddet.data
+          FRAUDDET_CONFIG=configs/ci.yaml pytest -q tests/test_serving.py -k parity

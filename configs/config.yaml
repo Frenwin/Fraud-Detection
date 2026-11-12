@@ -1,0 +1,69 @@
+# =============================================================
+# Fraud Detection — konfigurasi tunggal untuk seluruh pipeline
+# =============================================================
+seed: 42
+
+paths:
+  raw: data/raw
+  processed: data/processed
+  artifacts: artifacts
+  reports: reports
+
+# ---------- 1. Simulasi transaksi (Rupiah, 10 kota Indonesia) ----------
+simulation:
+  start_date: "2026-05-01"
+  n_days: 120
+  n_customers: 4000
+  n_pos_terminals: 6000
+  n_atm: 600
+  n_online_merchants: 500
+  mean_tx_per_day: 1.8          # rata-rata transaksi per nasabah per hari
+  trips_per_customer: 2.0       # rata-rata perjalanan ke luar kota (legit) per 120 hari
+  fraud_device_pool: 120        # perangkat milik sindikat (dipakai lintas korban)
+  scenarios:                    # jumlah KORBAN per skenario
+    cnp_stolen_card: 350        # data kartu bocor -> belanja online dari device asing
+    card_testing: 150           # burst nominal kecil lalu nominal besar
+    account_takeover: 150       # device baru + kota lain + top-up e-wallet besar
+    card_cloning: 80            # jumlah terminal skimming; kartu klon dipakai di kota lain
+    merchant_collusion: 40      # jumlah merchant nakal (sebagian transaksinya fraud)
+    social_engineering: 220     # pola BARU (drift): device & lokasi korban sendiri
+  social_engineering_start_day: 98   # hanya muncul di periode test -> concept drift
+
+# ---------- 2. Split berbasis waktu (indeks hari) ----------
+# Label fraud (chargeback) baru matang setelah label_delay_days.
+# Model di-deploy di awal hari test -> hari 90..96 labelnya belum matang -> GAP.
+split:
+  warmup: [0, 13]      # hanya untuk "memanaskan" state fitur (velocity 30 hari)
+  train:  [14, 75]
+  valid:  [76, 89]     # HPO, early stopping, kalibrasi, pemilihan threshold
+  gap:    [90, 96]     # dibuang: label belum matang saat deploy
+  test:   [97, 119]    # out-of-time, juga di-replay sebagai stream realtime
+label_delay_days: 7
+
+# ---------- 3. Model biaya bisnis (IDR) ----------
+cost:
+  review_cost: 15000        # biaya analis memeriksa 1 alert
+  friction_cost: 25000      # biaya friksi nasabah jika transaksi sah diblokir/ditahan
+alerting:
+  daily_alert_budget: 50    # kapasitas tim analis per hari (untuk Precision@K)
+  block_min_precision: 0.90 # threshold BLOCK otomatis harus punya presisi >= ini
+
+# ---------- 4. Riset ----------
+research:
+  optuna_trials: 40
+  optuna_timeout_s: 900
+  topk_features: [5, 10, 15, 20]
+  tree_budgets: [50, 100, 200, 400]
+
+# ---------- 5. Service Level Objective ----------
+slo:
+  p99_model_ms: 2.0         # inferensi model saja (single row)
+  p99_e2e_ms: 15.0          # fitur + inferensi + reason code (in-process)
+
+# ---------- 6. Serving & streaming ----------
+serving:
+  host: 127.0.0.1
+  port: 8010
+  sink_flush_ms: 500        # batch insert ke DB tiap 500 ms (di luar jalur latensi)
+  drift_every_n: 2000       # hitung PSI drift tiap N transaksi
+db_url: postgresql+psycopg2://fraud:fraud@localhost:5434/frauddb

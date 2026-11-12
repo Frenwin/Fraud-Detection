@@ -1,0 +1,10 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",
+  "pageOrder": [
+    "live_operations",
+    "business_impact",
+    "model_health",
+    "research"
+  ],
+  "activePageName": "live_operations"
+}

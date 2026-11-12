@@ -1,0 +1,128 @@
+table v_kpi_minute
+	lineageTag: 7591769a-081e-4b2e-a967-1e80735889d4
+
+	column minute_wib
+		dataType: dateTime
+		formatString: HH:mm
+		lineageTag: 346eac3f-927e-460b-8ac5-5b4a68ba4d50
+		summarizeBy: none
+		sourceColumn: minute_wib
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_tx
+		dataType: int64
+		lineageTag: eaad8e73-55b3-47ec-b214-1639e4620ada
+		summarizeBy: sum
+		sourceColumn: n_tx
+
+		annotation SummarizationSetBy = Automatic
+
+	column tps
+		dataType: double
+		lineageTag: 2a62b4fe-9606-4fba-95c7-22e15108f8d9
+		summarizeBy: sum
+		sourceColumn: tps
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_alert
+		dataType: int64
+		lineageTag: 2077634d-cde4-437f-a199-89da1073c196
+		summarizeBy: sum
+		sourceColumn: n_alert
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_review
+		dataType: int64
+		lineageTag: f614239d-8b41-44ed-b72d-ab53a9c32dd2
+		summarizeBy: sum
+		sourceColumn: n_review
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_block
+		dataType: int64
+		lineageTag: c73e5459-b331-416a-9c1c-7d9fa2bc295d
+		summarizeBy: sum
+		sourceColumn: n_block
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: 96355b95-6d4f-4769-9b86-27e0d14abe13
+		summarizeBy: sum
+		sourceColumn: amount_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_blocked_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: ac88bc28-79cf-4050-97b7-aac714068cf4
+		summarizeBy: sum
+		sourceColumn: amount_blocked_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_score
+		dataType: double
+		lineageTag: 3876dc66-025c-45c7-9db5-45651cd06702
+		summarizeBy: sum
+		sourceColumn: avg_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column p50_latency_ms
+		dataType: double
+		lineageTag: b3556f43-af3b-4ecf-8f4c-36368a555ea9
+		summarizeBy: sum
+		sourceColumn: p50_latency_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p95_latency_ms
+		dataType: double
+		lineageTag: c9c5eedc-553c-4b6c-a22b-35dd25d98c81
+		summarizeBy: sum
+		sourceColumn: p95_latency_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_latency_ms
+		dataType: double
+		lineageTag: 63a27622-5fe1-4dcb-beae-ec025cbdab33
+		summarizeBy: sum
+		sourceColumn: p99_latency_ms
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_fraud_labeled
+		dataType: int64
+		lineageTag: 0aef083b-9ba7-4ff3-a0f8-bd7a99e3918a
+		summarizeBy: sum
+		sourceColumn: n_fraud_labeled
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_fraud_caught
+		dataType: int64
+		lineageTag: eda18958-ae47-47e3-9606-1067b9fb1a39
+		summarizeBy: sum
+		sourceColumn: n_fraud_caught
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_kpi_minute = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_kpi_minute"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

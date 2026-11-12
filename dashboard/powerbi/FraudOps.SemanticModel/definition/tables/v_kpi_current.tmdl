@@ -1,0 +1,139 @@
+table v_kpi_current
+	lineageTag: 454ac731-343e-4206-9252-5bc94d186b8c
+
+	measure 'TPS 5m' = MAX('v_kpi_current'[tps_5m])
+		formatString: 0.0
+		lineageTag: e6d7e116-4941-4b9a-a226-8bbc2f3dd588
+
+	measure 'P50 Latency 5m (ms)' = MAX('v_kpi_current'[p50_latency_ms_5m])
+		formatString: 0.00
+		lineageTag: a0f18a0f-bb27-46e1-a34c-fd8bff5034d4
+
+	measure 'P99 Latency 5m (ms)' = MAX('v_kpi_current'[p99_latency_ms_5m])
+		formatString: 0.00
+		lineageTag: 5dea9e70-7c46-4f00-a4e7-5ff504a50824
+
+	measure 'SLO p99 (ms)' = 15
+		formatString: 0
+		lineageTag: f761e896-6fab-45aa-965c-4ba22cebdd8d
+
+	measure 'Gauge Max (ms)' = 20
+		formatString: 0
+		lineageTag: 26830518-6d76-4289-9444-d83aa0259de6
+
+	measure 'Latency Color' = IF([P99 Latency 5m (ms)] <= [SLO p99 (ms)], "#0ca30c", "#d03b3b")
+		lineageTag: 39f0b720-9a2b-495a-913b-40f5e2980996
+
+	measure 'Latency Status' = IF([P99 Latency 5m (ms)] <= [SLO p99 (ms)], "✓ Dalam SLO", "✕ Melewati SLO")
+		lineageTag: c71a29b6-ed52-466f-bb9b-39db59554cc2
+
+	measure 'Model Version' = SELECTEDVALUE('v_kpi_current'[model_version], "-")
+		lineageTag: 7ebaf3c1-3b76-4196-a5fe-4a4c89b20f2f
+
+	column tps_5m
+		dataType: double
+		lineageTag: 279d4e40-5873-45fb-94f4-d324715b6335
+		summarizeBy: sum
+		sourceColumn: tps_5m
+
+		annotation SummarizationSetBy = Automatic
+
+	column alert_rate_5m
+		dataType: double
+		lineageTag: fb90669b-cf58-46ab-ac78-7782ba7a9c7c
+		summarizeBy: sum
+		sourceColumn: alert_rate_5m
+
+		annotation SummarizationSetBy = Automatic
+
+	column block_rate_5m
+		dataType: double
+		lineageTag: 3ff3ec8a-0f76-439e-9718-636c9148d059
+		summarizeBy: sum
+		sourceColumn: block_rate_5m
+
+		annotation SummarizationSetBy = Automatic
+
+	column p50_latency_ms_5m
+		dataType: double
+		lineageTag: 788282e2-cf00-4c3c-a38c-b3321bbca73b
+		summarizeBy: sum
+		sourceColumn: p50_latency_ms_5m
+
+		annotation SummarizationSetBy = Automatic
+
+	column p99_latency_ms_5m
+		dataType: double
+		lineageTag: ed348d0a-fda5-41db-a3c9-5820522d1ff8
+		summarizeBy: sum
+		sourceColumn: p99_latency_ms_5m
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_tx
+		dataType: int64
+		lineageTag: ebd83d00-ad8c-4bdf-b8bf-5078d09a8698
+		summarizeBy: sum
+		sourceColumn: n_tx
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_idr
+		dataType: double
+		formatString: #,0
+		lineageTag: d3551b34-c8aa-4704-af21-be5f65264f49
+		summarizeBy: sum
+		sourceColumn: amount_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_amount_intercepted_idr
+		dataType: double
+		lineageTag: 73431622-0534-408e-a453-026027d36304
+		summarizeBy: sum
+		sourceColumn: fraud_amount_intercepted_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column fraud_amount_total_idr
+		dataType: double
+		lineageTag: 5ffff8cb-51aa-40fa-9f52-67aa962e1e59
+		summarizeBy: sum
+		sourceColumn: fraud_amount_total_idr
+
+		annotation SummarizationSetBy = Automatic
+
+	column precision_labeled
+		dataType: double
+		lineageTag: 0dd9b134-0221-46ae-bfdd-d55a707bbbc0
+		summarizeBy: sum
+		sourceColumn: precision_labeled
+
+		annotation SummarizationSetBy = Automatic
+
+	column recall_labeled
+		dataType: double
+		lineageTag: 64d754f3-0bc6-4c3c-8639-d01d8fbc8f79
+		summarizeBy: sum
+		sourceColumn: recall_labeled
+
+		annotation SummarizationSetBy = Automatic
+
+	column model_version
+		dataType: string
+		lineageTag: 76202fe6-92ca-43ce-8726-526eb83b2160
+		summarizeBy: none
+		sourceColumn: model_version
+
+		annotation SummarizationSetBy = Automatic
+
+	partition v_kpi_current = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema="public",Item="v_kpi_current"]}[Data]
+				in
+				    Data
+
+	annotation PBI_ResultType = Table

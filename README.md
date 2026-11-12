@@ -249,13 +249,54 @@ dipakai bersama satu keluarga, belanja besar sesekali) agar tidak ada satu atura
 **Serving:** ONNX Runtime, FastAPI, Uvicorn · **Data:** PostgreSQL 16, pandas, PyArrow ·
 **BI:** Power BI (PBIP: TMDL + PBIR, DirectQuery), Streamlit, Plotly, Matplotlib · **Ops:** Docker Compose, GitHub Actions, pytest
 
-## Keterbatasan & langkah lanjut
+## Keterbatasan
 
 - Data sintetis: angka absolut tidak bisa langsung dibandingkan dengan data bank nyata. Metodologinya (split waktu +
   label delay, threshold berbasis biaya, parity, SLO) tetap berlaku.
-- Retraining terjadwal dengan *champion/challenger shadow scoring* begitu label `social_engineering` tersedia.
-- Fitur graf lanjutan (GNN pada graf kartu–perangkat–merchant) untuk mendeteksi sindikat.
-- State fitur di online store terdistribusi (Redis) dengan worker yang dipartisi per `customer_id` untuk > 1.000 TPS.
+- Dua skenario masih lemah di test: `merchant_collusion` (recall 30%, sinyalnya baru muncul setelah label delay) dan
+  `social_engineering` (recall 30%, pola yang tidak pernah ada di data training).
+- Satu worker HTTP jenuh di ±960 req/s; state fitur masih in-process.
+
+## Roadmap
+
+### 1. Eksperimen model: target ROC-AUC ≥ 0,99
+
+| Metrik (test out-of-time) | Sekarang | Target |
+|---|---|---|
+| ROC-AUC model produksi | 0,977 | **≥ 0,99** |
+| ROC-AUC terbaik di E1 | 0,988 (RandomForest), 0,987 (CatBoost) | – |
+| AUPRC (metrik utama) | 0,844 | ≥ 0,90 |
+| p99 end-to-end | 4,2 ms | tetap ≤ 15 ms (SLO) |
+
+**Aturan main** agar angkanya jujur:
+- seleksi model tetap hanya memakai validasi;
+- test out-of-time disentuh sekali per eksperimen;
+- ROC-AUC dilaporkan bersama CI 95% (bootstrap per hari);
+- AUPRC tetap menjadi metrik utama, karena ROC-AUC mudah tinggi pada data yang sangat tidak seimbang.
+
+| # | Eksperimen | Hipotesis |
+|---|---|---|
+| E12 | **Ensemble / stacking** LightGBM + CatBoost + RandomForest, lalu distilasi ke satu model ONNX | RF & CatBoost lebih tahan drift di test (ROC-AUC 0,988/0,987); gabungannya mengangkat ranking tanpa melanggar SLO |
+| E13 | **Fitur untuk skenario lemah**: anomali volume & nominal per merchant terhadap baseline-nya sendiri (tanpa menunggu chargeback); *first-time payee* + nominal vs maksimum historis nasabah untuk top-up e-wallet | Menutup celah `merchant_collusion` dan `social_engineering` |
+| E14 | **Fitur graf** kartu–perangkat–merchant (ukuran komponen, PageRank, label propagation), lalu GNN | Sindikat yang berbagi perangkat/merchant terlihat sebagai struktur, bukan transaksi tunggal |
+| E15 | **Model sekuens** (GRU / Transformer) atas N transaksi terakhir per kartu | Menangkap urutan perilaku (misalnya card testing → transaksi besar) yang hilang dalam agregat window |
+| E16 | **HPO multi-objektif** (Optuna: AUPRC × latensi) untuk LightGBM, CatBoost, dan XGBoost | Model terbaik di frontier akurasi–latensi, bukan hanya di akurasi |
+| E17 | **Retraining berkala** dengan sliding window + label yang sudah matang, dievaluasi *champion/challenger* | Mengukur seberapa cepat model pulih dari concept drift begitu label pola baru tersedia |
+
+### 2. Dashboard Power BI lanjutan
+
+- [ ] Halaman **drill-through detail transaksi & nasabah**: riwayat transaksi, semua reason code, dan posisi skor terhadap threshold
+- [ ] **Slicer** kanal / kategori / kota / rentang waktu, ditambah *bookmark* dan tombol navigasi antarhalaman
+- [ ] **Peta lokasi** fraud & alert (Azure Maps) dengan deteksi *impossible travel*
+- [ ] Parameter **what-if threshold** (DAX) untuk mensimulasikan alert, precision, dan net savings sebelum threshold diubah
+- [ ] Halaman **champion vs challenger** untuk memantau hasil retraining (E17) secara live
+- [ ] Theme kustom yang benar-benar terdaftar di Desktop dan sumbu log native (saat ini masih di-precompute di view)
+- [ ] **Tooltip page**, layout mobile, dan publish ke Power BI Service lewat on-premises gateway; evaluasi Fabric Real-Time Intelligence
+
+### 3. Platform
+
+- [ ] State fitur di online store terdistribusi (Redis) dengan worker yang dipartisi per `customer_id` untuk > 1.000 TPS
+- [ ] Event log downstream lewat Kafka/Redpanda; retraining & deploy otomatis lewat pipeline CI/CD
 
 ## Lisensi
 

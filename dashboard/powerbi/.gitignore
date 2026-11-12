@@ -1,1 +1,5 @@
+# files Power BI Desktop writes on save (the generator build_pbip.py is the source of truth)
 **/.pbi/
+**/.platform
+**/diagramLayout.json
+**/definition/cultures/

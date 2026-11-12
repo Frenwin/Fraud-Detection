@@ -148,11 +148,6 @@ ORDER BY feature, measured_at DESC;
 CREATE OR REPLACE VIEW v_drift_top AS
 SELECT feature, psi, level, measured_at_wib FROM v_drift_latest ORDER BY psi DESC LIMIT 10;
 
-CREATE OR REPLACE VIEW v_drift_history AS
-SELECT (measured_at AT TIME ZONE 'Asia/Jakarta') AS measured_at_wib, feature, psi, level
-FROM drift_metrics
-WHERE measured_at >= now() - interval '3 hours';
-
 CREATE OR REPLACE VIEW v_model_registry AS
 SELECT model_version, (deployed_at AT TIME ZONE 'Asia/Jakarta') AS deployed_at_wib, variant, runtime, n_features,
        n_trees, t_review, t_block, valid_auprc, test_auprc, p99_model_ms, p99_e2e_ms

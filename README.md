@@ -1,159 +1,262 @@
-# 🛡️ Real-time Fraud Detection: dari riset sampai dashboard live
+# 🛡️ Real-time Fraud Detection
 
-End-to-end fraud detection untuk transaksi kartu (Rupiah, 10 kota Indonesia). Proyek mencakup **riset model yang
-reprodusibel** dan **optimasi latensi dengan uji trade-off**, lalu **serving realtime** yang memberi keputusan
-APPROVE / REVIEW / BLOCK beserta *reason code*. Hasilnya dipantau di **dashboard Power BI / Tableau / Streamlit**
-yang ter-update setiap 2 detik.
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![LightGBM](https://img.shields.io/badge/LightGBM-ONNX%20Runtime-2a78d6)
+![FastAPI](https://img.shields.io/badge/FastAPI-serving-009688?logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power%20BI-DirectQuery%20live-F2C811?logo=powerbi&logoColor=black)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-<!-- RESULTS:START -->
-![Power BI · Live Operations](docs/img/powerbi_live_operations.png)
+**Sistem deteksi fraud transaksi kartu secara end-to-end**, dari riset model sampai dashboard yang bergerak live.
+Setiap transaksi dinilai dalam hitungan milidetik dan diberi keputusan **APPROVE / REVIEW / BLOCK** beserta alasan
+dalam Bahasa Indonesia. Hasilnya dipantau di **Power BI** yang ter-refresh otomatis tiap 3 detik.
+
+![Power BI · Real-time Fraud Operations](docs/img/powerbi_live_operations.png)
+
+---
+
+## Ringkasan
+
+| | |
+|---|---|
+| **Masalah** | Fraud < 1% dari transaksi, labelnya (chargeback) datang terlambat, polanya terus berubah, dan keputusan harus keluar dalam milidetik saat otorisasi kartu |
+| **Pendekatan** | Feature engine *point-in-time* yang sama untuk training & serving, split berbasis waktu dengan *label delay*, threshold berbasis biaya Rupiah, dan pemilihan model berdasarkan Pareto akurasi–latensi di bawah SLO |
+| **Hasil** | AUPRC **0,844** (aturan manual 0,474) · recall **79,8%** pada precision **83,5%** · **Rp 1,66 miliar** net savings di periode test · p99 end-to-end **4,2 ms** |
+
+### Hasil utama (test out-of-time 23 hari, 171.612 transaksi)
+
+| Aspek | Hasil |
+|---|---|
+| Model produksi | LightGBM (29 fitur, 1.066 pohon, di-tuning Optuna) → ONNX Runtime single-thread |
+| Kualitas ranking | AUPRC **0,844** · ROC-AUC 0,977 · Precision@50/hari 0,86 |
+| Keputusan REVIEW | recall **79,8%** · precision **83,5%** · alert hanya 0,77% dari transaksi |
+| Keputusan BLOCK otomatis | precision **93,3%** (threshold dipilih agar precision ≥ 90% di validasi) |
+| Nilai bisnis | 68,5% nilai fraud tercegah · **net savings Rp 1,66 miliar** setelah biaya analis & friksi nasabah |
+| Latensi | model p99 **0,137 ms** · fitur + model + reason code p99 **4,2 ms** (SLO 15 ms ✓) |
+| Throughput | ±960 req/s per worker HTTP; server-side p99 tetap 0,6–4,6 ms di semua level beban |
+| Konsistensi fitur | selisih fitur online vs offline: **0** (diuji otomatis) |
+
+### Temuan riset yang paling menarik
+
+1. **Runtime lebih menentukan latensi daripada arsitektur model.** Pada akurasi sebanding, RandomForest (sklearn)
+   p99 19 ms vs LightGBM di ONNX Runtime 0,137 ms, alias **141× lebih cepat**.
+2. **Explainability adalah biaya latensi terbesar.** Menghitung SHAP untuk setiap transaksi butuh ±6,5 ms, jauh di atas
+   inferensinya (0,1 ms). Strategi *explain-on-alert* menurunkan p50 end-to-end dari 6,6 ms ke 0,14 ms.
+3. **Concept drift tidak terdeteksi oleh PSI.** Pola scam baru (`social_engineering`) menurunkan recall mingguan dari
+   0,79 ke 0,59, padahal PSI semua fitur tetap < 0,005. Monitoring produksi butuh dua lapis: PSI **dan** performa berlabel.
+4. **Kalibrasi isotonic bisa merusak ranking.** Fungsi tangganya membuat skor kembar sehingga AUPRC turun ±0,02.
+   Diperbaiki dengan *tie-break* yang menjaga pemetaan tetap monoton ketat.
+5. **Event out-of-order benar-benar terjadi.** Load test konkuren membuat feature engine versi awal crash. Sekarang
+   event terlambat disisipkan di posisi waktunya, dan perilaku ini dikunci oleh unit test.
+
+📄 Laporan riset lengkap (E1–E11, di-generate otomatis dari hasil run): [`reports/RESEARCH_REPORT.md`](reports/RESEARCH_REPORT.md)
+
+---
+
+## Dashboard Power BI
 
 | Business Impact | Model Health | Research & Trade-offs |
 |---|---|---|
 | ![](docs/img/powerbi_business_impact.png) | ![](docs/img/powerbi_model_health.png) | ![](docs/img/powerbi_research.png) |
 
-*Dashboard Power BI (DirectQuery ke PostgreSQL, auto page refresh) di-generate dari kode → [`dashboard/powerbi`](dashboard/powerbi/README.md).
-Alternatif tanpa Power BI: Streamlit live monitor (`streamlit run dashboard/streamlit/app.py`).*
+- **4 halaman, 73 visual, 40 measure DAX.** Mode DirectQuery ke PostgreSQL dengan *auto page refresh* 3–5 detik.
+- **Dashboard as code.** File [`FraudOps.pbip`](dashboard/powerbi/) (semantic model TMDL + report PBIR) di-generate
+  oleh [`build_pbip.py`](dashboard/powerbi/build_pbip.py). Setiap perubahan bisa di-review lewat diff Git.
+- Warna status (hijau/kuning/merah) hanya dipakai bila nilainya punya arti dan selalu disertai label. Nominal tampil
+  dalam format Rupiah. Detail desain dan catatan teknisnya ada di [`dashboard/powerbi/README.md`](dashboard/powerbi/README.md).
+- Tanpa Power BI? Dashboard Streamlit membaca view yang sama: `streamlit run dashboard/streamlit/app.py`.
 
-### Hasil utama (test out-of-time 23 hari, 171.612 transaksi)
-
-| | |
-|---|---|
-| **Model produksi** | LightGBM (29 fitur, 1.066 pohon, Optuna) → ONNX Runtime single-thread |
-| **AUPRC** | **0.844** (aturan manual 0.474 → **1,8×**) · ROC-AUC 0.977 · Precision@50/hari 0.86 |
-| **Keputusan REVIEW** | recall **79,8%** · precision **83,5%** · alert hanya 0,77% transaksi |
-| **Nilai bisnis** | 68,5% nilai fraud tercegah · **net savings Rp 1,66 miliar** setelah biaya review & friksi |
-| **Latensi** | model p99 **0,137 ms** · end-to-end (fitur + model + reason code) p99 **4,2 ms** (SLO 15 ms ✓) |
-| **Throughput** | ±960 req/s per worker HTTP. Server-side p99 tetap 0,6–4,6 ms di semua level beban |
-| **Parity** | fitur online vs offline: selisih maksimum **0** |
-
-### Temuan riset yang paling menarik
-
-1. **Runtime > arsitektur model.** Pada akurasi sebanding, RandomForest sklearn p99 19 ms vs LightGBM ONNX 0,137 ms (**141×**).
-2. **Explainability adalah biaya latensi terbesar.** TreeSHAP per transaksi (6,5 ms) lebih mahal daripada inferensi
-   (0,1 ms). Strategi *explain-on-alert* menurunkan p50 end-to-end dari 6,6 ms ke 0,14 ms.
-3. **Concept drift tidak terlihat oleh PSI.** Pola scam baru (`social_engineering`) membuat recall mingguan turun
-   0,79 → 0,59, tetapi PSI fitur tetap < 0,005. Monitoring wajib dua lapis: PSI **dan** performa berlabel.
-4. **Kalibrasi isotonic bisa merusak ranking.** Fungsi tangga membuat skor kembar (AUPRC −0,02). Ini diperbaiki
-   dengan *tie-break* yang menjaga monotonisitas ketat.
-5. **Out-of-order events nyata terjadi.** Load test konkuren memicu crash pada feature engine versi awal. Engine sekarang
-   menyisipkan event terlambat di posisi yang benar (ada unit test-nya).
-
-📄 Laporan lengkap: [`reports/RESEARCH_REPORT.md`](reports/RESEARCH_REPORT.md) (E1–E11, auto-generated dari hasil run)
-<!-- RESULTS:END -->
+---
 
 ## Arsitektur
 
 ```mermaid
 flowchart LR
-    subgraph Offline["Offline research (reproducible)"]
-        SIM[Simulator<br/>6 fraud scenarios + drift] --> FE1[Stateful feature engine<br/>point-in-time, label delay]
-        FE1 --> EXP[E1–E8 research<br/>model zoo · imbalance · ablation<br/>Optuna · calibration · cost policy<br/>SHAP · drift]
-        EXP --> OPT[E9–E10 optimisation<br/>ONNX · tree/feature budget<br/>Pareto · SLO selection]
-        OPT --> BUNDLE[(Production bundle<br/>model + calibration + policy<br/>+ drift profile)]
-        FE1 --> SNAP[(Feature-state snapshot<br/>at deployment day)]
+    subgraph Offline["Riset offline (reprodusibel)"]
+        SIM[Simulator transaksi<br/>6 skenario fraud + drift] --> FE1[Feature engine stateful<br/>point-in-time · label delay]
+        FE1 --> EXP[E1–E8 riset<br/>model · imbalance · ablasi<br/>Optuna · kalibrasi · biaya<br/>SHAP · drift]
+        EXP --> OPT[E9–E10 optimasi<br/>ONNX · budget pohon/fitur<br/>Pareto · seleksi SLO]
+        OPT --> BUNDLE[(Bundle produksi<br/>model · kalibrasi · policy<br/>profil drift)]
+        FE1 --> SNAP[(Snapshot state fitur<br/>saat deploy)]
     end
-    subgraph Online["Online serving (real-time)"]
-        REPLAY[Stream replay<br/>test period @ N TPS] -- POST /score --> API[FastAPI scorer<br/>same feature engine<br/>ONNX + explain-on-alert]
-        REPLAY -- delayed chargeback<br/>POST /feedback --> API
-        API -- async batch 500 ms --> PG[(PostgreSQL<br/>BI semantic views)]
-        API -- PSI every 2k tx --> PG
+    subgraph Online["Serving realtime"]
+        REPLAY[Stream replay<br/>periode test @ N TPS] -- POST /score --> API[FastAPI scorer<br/>feature engine yang sama<br/>ONNX + explain-on-alert]
+        REPLAY -- chargeback tertunda<br/>POST /feedback --> API
+        API -- batch async 500 ms --> PG[(PostgreSQL<br/>view semantik BI)]
+        API -- PSI tiap 2.000 tx --> PG
     end
     BUNDLE --> API
     SNAP --> API
-    PG -- DirectQuery +<br/>auto page refresh --> PBI[Power BI]
-    PG -- Live connection --> TAB[Tableau]
-    PG --> ST[Streamlit live ops]
+    PG -- DirectQuery + auto page refresh --> PBI[Power BI]
+    PG --> ST[Streamlit]
 ```
 
-**Keputusan desain penting**
+### Keputusan desain
 
 | Keputusan | Alasan |
 |---|---|
-| **Satu feature engine untuk offline & online** | Training-serving skew tidak mungkin terjadi. Parity diuji otomatis (`tests/test_serving.py`) |
-| **Split berbasis waktu + gap label delay 7 hari** | Chargeback datang terlambat. Random split membocorkan masa depan dan memberi skor palsu |
-| **AUPRC + Precision@K/hari + nilai Rupiah** | Akurasi tidak berarti pada fraud rate < 1%. Bisnis memikirkan kapasitas analis & kerugian |
-| **Kalibrasi isotonic + threshold berbasis biaya** | Threshold 0.5 tidak bermakna. REVIEW = net savings maksimum, BLOCK = precision ≥ 90% |
-| **Scoring sinkron (request/response), DB async** | Otorisasi kartu butuh jawaban dalam milidetik. Penulisan ke DB dikeluarkan dari jalur latensi |
-| **ONNX Runtime single-thread + explain-on-alert** | Hasil E9/E10: runtime & strategi SHAP lebih menentukan latensi daripada pilihan model |
-| **DirectQuery + auto page refresh** (bukan streaming dataset) | Streaming semantic model Power BI sedang dipensiunkan Microsoft. Pola ini juga portabel ke Tableau |
+| **Satu feature engine untuk offline & online** | Training–serving skew tidak mungkin terjadi; parity diuji di `tests/test_serving.py` |
+| **Split berbasis waktu + gap 7 hari** | Chargeback matang ±7 hari. Random split membocorkan masa depan dan memberi skor yang terlalu optimis |
+| **AUPRC, Precision@K/hari, dan nilai Rupiah** | Akurasi tidak bermakna pada fraud rate < 1%. Yang penting bagi bisnis adalah kapasitas analis dan kerugian |
+| **Kalibrasi isotonic + threshold berbasis biaya** | Threshold 0,5 tidak punya arti. REVIEW = net savings maksimum, BLOCK = precision ≥ 90% |
+| **Scoring sinkron, penulisan DB asinkron** | Otorisasi kartu butuh jawaban dalam milidetik, jadi penulisan ke database dikeluarkan dari jalur latensi |
+| **ONNX single-thread + explain-on-alert** | Hasil E9/E10: runtime dan strategi SHAP lebih menentukan latensi daripada pilihan model |
+| **DirectQuery + auto page refresh** | Fitur *streaming dataset* Power BI sedang dipensiunkan Microsoft; pola ini tetap didukung |
+
+---
+
+## Alur riset
+
+Seleksi model hanya memakai data validasi; data test (out-of-time) disentuh sekali untuk pelaporan.
+
+| # | Pertanyaan | Jawaban singkat |
+|---|---|---|
+| E1 | Model apa yang paling baik? | Semua model ML jauh di atas aturan manual (0,47). GBDT ±0,94 di validasi; selisih antar-GBDT di test tidak signifikan (CI 95% tumpang tindih) |
+| E2 | Perlukah SMOTE / reweighting? | Tidak memberi lompatan berarti, tetapi merusak skala probabilitas |
+| E3 | Fitur mana yang paling berharga? | Fitur perilaku (velocity, profil nominal): AUPRC 0,56 → 0,84 |
+| E4 | Seberapa besar efek tuning? | Optuna 40 trial: +0,0034 AUPRC valid dari default yang sudah kuat |
+| E5 | Apakah probabilitasnya jujur? | Isotonic + tie-break menjaga ranking; kalibrasi dievaluasi dengan satu `np.interp` |
+| E6 | Di mana threshold-nya? | REVIEW ≥ 0,076 (net savings maksimum), BLOCK ≥ 0,134 (precision 93%) |
+| E7 | Kenapa transaksi di-alert? | TreeSHAP → 3 reason code per alert (jarak dari domisili, perangkat baru, dll.) |
+| E8 | Seberapa tahan terhadap pola baru? | Recall `social_engineering` 30%, dan drift ini tidak tertangkap PSI |
+| E9 | Akurasi vs latensi? | Pareto frontier; LightGBM ONNX p99 0,137 ms terpilih di bawah SLO 2 ms |
+| E10 | Berapa biaya end-to-end? | Explain-on-alert: p50 0,14 ms, p99 4,2 ms |
+| E11 | Berapa kapasitas API? | ±960 req/s per worker; bottleneck ada di antrean HTTP, bukan model |
+
+---
 
 ## Quickstart
 
+**Prasyarat:** Python 3.10+, Docker Desktop, dan Power BI Desktop (opsional, Windows).
+Port yang dipakai: PostgreSQL `5434`, API `8010`, Streamlit `8501`.
+
 ```powershell
-# 0) environment
+# 1) Environment
 python -m venv .venv; .venv\Scripts\Activate.ps1
 pip install -r requirements.txt; pip install -e .
 
-# 1) riset offline lengkap (~20–30 menit, CPU)
-.\scripts\run_pipeline.ps1                # = data -> research -> optimize -> report
+# 2) Riset offline lengkap (±25 menit di CPU): data -> riset E1-E8 -> optimasi E9-E10 -> laporan
+.\scripts\run_pipeline.ps1
 
-# 2) demo realtime: PostgreSQL + API + stream + Streamlit
-.\scripts\run_live.ps1 -Tps 40
-#    API docs   : http://127.0.0.1:8010/docs
-#    Streamlit  : http://localhost:8501
-#    Power BI   : buka dashboard/powerbi/FraudOps.pbip (login DB: fraud / fraud)
-
-# 3) load test (API tanpa DB sink)
-$env:FRAUDDET_SINK="off"; python -m frauddet.serving.api     # terminal 1
-python -m frauddet.loadtest                                  # terminal 2
-
-# 4) tests
-pytest -q
+# 3) Demo realtime: PostgreSQL + API + stream + Streamlit (+ Power BI bila terpasang)
+.\scripts\run_live.ps1 -Tps 25
 ```
 
-Linux/macOS: `make all`, `make db`, `make api`, `make replay`, `make dashboard`.
-Docker penuh: `docker compose --profile app up -d --build` (setelah langkah 1).
+Lalu buka:
+
+| Apa | Di mana |
+|---|---|
+| Dashboard Power BI | `dashboard/powerbi/FraudOps.pbip`. Login database sekali: `fraud` / `fraud` |
+| Dashboard Streamlit | http://localhost:8501 |
+| Dokumentasi API (Swagger) | http://127.0.0.1:8010/docs |
+
+Linux/macOS: `make all`, lalu `make db`, `make api`, `make replay`, `make dashboard`.
+Docker penuh (setelah langkah 2): `docker compose --profile app up -d --build`.
+
+### Load test & tests
+
+```powershell
+$env:FRAUDDET_SINK="off"; python -m frauddet.serving.api   # terminal 1: API tanpa database
+python -m frauddet.loadtest                                # terminal 2: E11
+pytest -q                                                  # 14 test: fitur, metrik, parity, API
+```
 
 ### Contoh request
 
 ```bash
 curl -X POST http://127.0.0.1:8010/score -H "Content-Type: application/json" -d '{
-  "tx_id": 1, "ts": "2026-08-06T02:14:00", "customer_id": 42, "terminal_id": 6650,
+  "tx_id": 1, "ts": "2026-08-06T02:14:00", "customer_id": 42, "terminal_id": 6606,
   "device_id": 10000007, "channel": "ONLINE", "category": "ewallet_topup",
   "amount": 9500000, "lat": 1.35, "lon": 103.82 }'
 ```
 
-Respons nyata (panggilan pertama setelah API start, jadi masih *cold*):
+Respons nyata (panggilan pertama setelah API start, sehingga latensinya masih *cold*):
 
 ```json
-{ "fraud_score": 1.0, "raw_score": 0.998766, "decision": "BLOCK",
+{ "fraud_score": 1.0, "decision": "BLOCK",
   "reasons": [ {"label": "Jarak dari domisili", "value": "628 km",       "contribution": 3.769},
                {"label": "Perangkat baru",      "value": "ya",           "contribution": 3.546},
                {"label": "Nominal transaksi",   "value": "Rp 9.500.000", "contribution": 1.914} ],
   "model_version": "lgbm-29f-1066t-onnx-20261112",
   "latency_ms": {"features": 0.20, "model": 0.80, "explain": 5.46, "total": 6.46} }
 ```
-Transaksi normal (belanja grocery Rp 125.000 di Jakarta) → `APPROVE`, skor 0.0035, total 0.54 ms tanpa
-reason code (*explain-on-alert*). Latensi *warm* ada di laporan E10.
+
+Transaksi normal (belanja grocery Rp 125.000 di Jakarta) menghasilkan `APPROVE` dengan skor 0,0035 dalam 0,54 ms,
+tanpa reason code.
+
+| Endpoint | Fungsi |
+|---|---|
+| `POST /score` | Menilai satu transaksi → skor terkalibrasi, keputusan, reason code, rincian latensi |
+| `POST /feedback` | Label chargeback yang datang terlambat → memperbarui risiko merchant & outcome di database |
+| `GET /health`, `GET /metrics` | Status, versi model, persentil latensi bergulir, komposisi keputusan |
+| `GET /model`, `GET /drift` | Model card produksi dan PSI drift online terbaru |
+
+---
+
+## Data
+
+Data **sepenuhnya sintetis**, dibuat oleh [`simulator.py`](src/frauddet/simulator.py): 895 ribu transaksi selama
+120 hari, 4.000 nasabah, 10 kota Indonesia, nominal dalam Rupiah, fraud rate ±0,6%.
+
+Dataset publik dihindari karena fitur PCA anonim tidak bisa dijelaskan di dashboard, dan dataset itu tidak memiliki
+ID entitas & timestamp yang dibutuhkan fitur realtime. Kebisingan dibuat realistis (nasabah bepergian, perangkat
+dipakai bersama satu keluarga, belanja besar sesekali) agar tidak ada satu aturan pun yang bisa memisahkan kelas.
+
+| Skenario fraud | Sinyal yang harus dipelajari model |
+|---|---|
+| `cnp_stolen_card` | belanja online dari perangkat sindikat yang dipakai banyak kartu |
+| `card_testing` | rentetan nominal kecil lalu satu nominal besar |
+| `account_takeover` | perangkat baru + kota lain + top-up e-wallet besar di dini hari |
+| `card_cloning` | kartu fisik dipakai di kota lain tak lama setelah skimming (*impossible travel*) |
+| `merchant_collusion` | merchant yang riwayat chargeback-nya melonjak (sinyal tertunda 7 hari) |
+| `social_engineering` | **pola baru, hanya ada di periode test**: perangkat & lokasi korban sendiri |
+
+---
 
 ## Struktur repository
 
 ```
-├── configs/config.yaml          # satu-satunya sumber konfigurasi (split, biaya, SLO, port)
+├── configs/config.yaml            # satu-satunya konfigurasi: split, biaya, SLO, port
 ├── src/frauddet/
-│   ├── simulator.py             # generator transaksi + 6 skenario fraud + drift
-│   ├── features.py              # stateful point-in-time feature engine (offline = online)
-│   ├── data.py                  # simulate -> replay -> parquet + state snapshot
-│   ├── metrics.py · policy.py   # AUPRC, Precision@K, nilai bisnis; kalibrasi & 3-tier threshold
-│   ├── research.py              # E1–E8
-│   ├── optimize.py              # E9–E10 + production bundle
-│   ├── loadtest.py              # E11
-│   ├── monitoring.py            # PSI drift
-│   ├── report.py                # auto-generate RESEARCH_REPORT.md
-│   ├── db.py                    # PostgreSQL bootstrap + async batch sink
-│   ├── serving/{scorer,api}.py  # jalur produksi + FastAPI
-│   └── stream/replay.py         # stream test period + delayed labels
-├── sql/{schema,views}.sql       # tabel operasional + semantic layer BI
+│   ├── simulator.py               # generator transaksi + 6 skenario fraud + drift
+│   ├── features.py                # feature engine point-in-time (offline = online), tahan event out-of-order
+│   ├── data.py                    # simulasi -> replay fitur -> parquet + snapshot state
+│   ├── metrics.py · policy.py     # AUPRC, Precision@K, nilai Rupiah; kalibrasi & threshold 3 tingkat
+│   ├── research.py                # eksperimen E1–E8
+│   ├── optimize.py                # eksperimen E9–E10 + bundle produksi
+│   ├── loadtest.py                # eksperimen E11
+│   ├── monitoring.py              # PSI drift (offline & online)
+│   ├── report.py                  # generate reports/RESEARCH_REPORT.md
+│   ├── db.py                      # bootstrap PostgreSQL + sink batch asinkron
+│   ├── serving/{scorer,api}.py    # jalur produksi + FastAPI
+│   └── stream/replay.py           # stream periode test + label tertunda
+├── sql/{schema,views}.sql         # tabel operasional + view semantik untuk BI
 ├── dashboard/
-│   ├── powerbi/                 # FraudOps.pbip (TMDL + PBIR) + build_pbip.py generator, theme, DAX
-│   ├── tableau/                 # panduan & calculated fields
-│   └── streamlit/app.py         # live ops dashboard (auto refresh 2 detik)
-├── reports/                     # RESEARCH_REPORT.md, figures/, results/ (CSV/JSON)
-├── tests/                       # unit + parity + API tests
-└── docker-compose.yml · Dockerfile
+│   ├── powerbi/                   # FraudOps.pbip (TMDL + PBIR) + generator build_pbip.py
+│   └── streamlit/app.py           # dashboard alternatif
+├── reports/                       # RESEARCH_REPORT.md, figures/, results/ (CSV/JSON)
+├── docs/img/                      # screenshot dashboard
+├── tests/                         # unit, parity, API
+├── scripts/                       # run_pipeline.ps1, run_live.ps1
+└── docker-compose.yml · Dockerfile · Makefile
 ```
+
+`data/` dan `artifacts/` (±180 MB) tidak disimpan di Git; keduanya dibuat ulang oleh `run_pipeline.ps1`.
+
+## Tech stack
+
+**ML:** LightGBM, XGBoost, CatBoost, scikit-learn, Optuna, SHAP, imbalanced-learn ·
+**Serving:** ONNX Runtime, FastAPI, Uvicorn · **Data:** PostgreSQL 16, pandas, PyArrow ·
+**BI:** Power BI (PBIP: TMDL + PBIR, DirectQuery), Streamlit, Plotly, Matplotlib · **Ops:** Docker Compose, GitHub Actions, pytest
+
+## Keterbatasan & langkah lanjut
+
+- Data sintetis: angka absolut tidak bisa langsung dibandingkan dengan data bank nyata. Metodologinya (split waktu +
+  label delay, threshold berbasis biaya, parity, SLO) tetap berlaku.
+- Retraining terjadwal dengan *champion/challenger shadow scoring* begitu label `social_engineering` tersedia.
+- Fitur graf lanjutan (GNN pada graf kartu–perangkat–merchant) untuk mendeteksi sindikat.
+- State fitur di online store terdistribusi (Redis) dengan worker yang dipartisi per `customer_id` untuk > 1.000 TPS.
 
 ## Lisensi
 
-MIT. Data sepenuhnya sintetis, tidak ada data nasabah nyata.
+MIT © 2026 [Frenwin](https://github.com/Frenwin). Seluruh data sintetis; tidak ada data nasabah nyata.

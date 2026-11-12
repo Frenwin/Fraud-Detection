@@ -1,4 +1,4 @@
-"""Live Fraud Operations dashboard (Streamlit) — reads the same SQL views as Power BI / Tableau.
+"""Live Fraud Operations dashboard (Streamlit) — reads the same SQL views as the Power BI report.
 
     streamlit run dashboard/streamlit/app.py
 """
